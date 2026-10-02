@@ -134,7 +134,7 @@
             errorMsg.classList.add('hidden');
             dashboard.classList.remove('hidden');
             chartLoading.classList.remove('hidden');
-            mlCard.classList.add('hidden'); // On cache la carte ML pendant le chargement
+            mlCard.classList.add('hidden');
 
             try {
                 const response = await fetch('/api/stock', {
@@ -155,9 +155,9 @@
                     varEl.textContent = `${sign}${data.variation}% sur ${data.period}`;
                     varEl.className = data.variation >= 0 ? "text-sm font-medium mt-1 text-emerald-400" : "text-sm font-medium mt-1 text-red-400";
 
-                    updateChart(data.dates, data.prices);
+                    // On passe les données ML au graphique
+                    updateChart(data.dates, data.prices, data.ml);
 
-                    // Mise à jour de la carte ML
                     if (data.ml) {
                         document.getElementById('mlPred').textContent = `$${data.ml.prediction.toFixed(2)}`;
                         document.getElementById('mlMin').textContent = `$${data.ml.range_min.toFixed(2)}`;
@@ -178,29 +178,63 @@
             }
         }
 
-        function updateChart(dates, prices) {
+        function updateChart(dates, prices, mlData) {
             const ctx = document.getElementById('priceChart').getContext('2d');
             
             if (chartInstance) {
                 chartInstance.destroy();
+            }
+
+            // 1. Dataset de base : Le prix réel
+            const datasets = [{
+                label: 'Prix Réel',
+                data: prices,
+                borderColor: '#3b82f6', // Bleu
+                backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                borderWidth: 2,
+                pointRadius: 0,
+                pointHoverRadius: 4,
+                pointHitRadius: 10,
+                fill: true,
+                tension: 0.1
+            }];
+
+            // 2. Ajouter les courbes ML si elles existent
+            if (mlData) {
+                // A. Ligne de tendance globale (Tirets gris)
+                datasets.push({
+                    label: 'Tendance Globale',
+                    data: mlData.trendline,
+                    borderColor: '#94a3b8', // Gris slate
+                    borderWidth: 1.5,
+                    borderDash: [5, 5],
+                    pointRadius: 0,
+                    fill: false,
+                    tension: 0
+                });
+
+                // B. Suivi du Modèle T+1 (Pointillés oranges)
+                datasets.push({
+                    label: 'Modèle ML (T+1)',
+                    data: mlData.ml_prices,
+                    borderColor: '#f59e0b', // Orange amber
+                    borderWidth: 2,
+                    borderDash: [2, 4],
+                    pointRadius: function(context) {
+                        // On affiche un gros point uniquement sur la toute dernière valeur (la prédiction)
+                        return context.dataIndex === mlData.ml_prices.length - 1 ? 6 : 0;
+                    },
+                    pointBackgroundColor: '#f59e0b',
+                    fill: false,
+                    tension: 0.1
+                });
             }
             
             chartInstance = new Chart(ctx, {
                 type: 'line',
                 data: {
                     labels: dates,
-                    datasets: [{
-                        label: 'Prix',
-                        data: prices,
-                        borderColor: '#3b82f6',
-                        backgroundColor: 'rgba(59, 130, 246, 0.1)',
-                        borderWidth: 2,
-                        pointRadius: 0,
-                        pointHoverRadius: 4,
-                        pointHitRadius: 10,
-                        fill: true,
-                        tension: 0.1
-                    }]
+                    datasets: datasets
                 },
                 options: {
                     responsive: true,
@@ -210,7 +244,11 @@
                         mode: 'index',
                     },
                     plugins: {
-                        legend: { display: false },
+                        // On affiche la légende pour que l'utilisateur comprenne les courbes
+                        legend: { 
+                            display: true,
+                            labels: { color: '#94a3b8', boxWidth: 12 }
+                        },
                         tooltip: {
                             backgroundColor: 'rgba(15, 23, 42, 0.9)',
                             titleColor: '#94a3b8',
@@ -218,9 +256,12 @@
                             borderColor: '#334155',
                             borderWidth: 1,
                             padding: 10,
-                            displayColors: false,
                             callbacks: {
-                                label: function(context) { return `$${context.parsed.y}`; }
+                                label: function(context) {
+                                    // Gérer proprement le "null" du prix réel le jour de la prédiction
+                                    if (context.parsed.y === null) return null;
+                                    return `${context.dataset.label}: $${context.parsed.y}`; 
+                                }
                             }
                         }
                     },

@@ -56,38 +56,60 @@ def get_stock_data():
         # ==========================================
         # MACHINE LEARNING : RÉGRESSION LINÉAIRE
         # ==========================================
-        # On crée un DataFrame pour manipuler facilement les colonnes
+        
+        # 1. Régression sur le Temps (Ligne de tendance globale)
+        # On crée un axe X [0, 1, 2, ..., N]
+        time_X = np.arange(len(prices)).reshape(-1, 1)
+        trend_model = LinearRegression()
+        trend_model.fit(time_X, prices)
+        trend_prices = trend_model.predict(time_X)
+        
+        # Prédiction de la tendance pour demain (N + 1)
+        next_time_X = np.array([[len(prices)]])
+        trend_pred = trend_model.predict(next_time_X)[0]
+
+        # 2. Régression ML (Prédiction du prix suivant)
         df = pd.DataFrame({'Close': prices})
-        
-        # La cible à prédire est le prix du pas de temps SUIVANT (shift -1)
         df['Target'] = df['Close'].shift(-1)
-        
-        # On enlève la dernière ligne car on ne connaît pas encore sa cible
         train_df = df.dropna()
         
-        if len(train_df) > 5: # Vérifier qu'on a assez de données pour entraîner
+        if len(train_df) > 5:
             X = train_df[['Close']].values
             y = train_df['Target'].values
             
-            # Entraînement du modèle
+            # Entraînement
             model = LinearRegression()
             model.fit(X, y)
             
-            # Prédiction pour le prochain point (en utilisant le tout dernier prix)
+            # Prédiction T+1
             next_X = np.array([[last_price]])
             pred = model.predict(next_X)[0]
             
-            # Calcul de la marge d'erreur (Root Mean Squared Error)
+            # Historique des prédictions (pour tracer la courbe)
             predictions_history = model.predict(X)
             rmse = np.sqrt(np.mean((y - predictions_history)**2))
+            
+            # On aligne l'historique (la première valeur est nulle car on n'a pas de T-1 pour la prédire)
+            ml_prices = [None] + np.round(predictions_history, 2).tolist()
+            
+            # --- AJOUT DU POINT "FUTUR" POUR LE GRAPHIQUE ---
+            dates.append("Demain (Prédiction)")
+            prices.append(None) # Le vrai prix de demain n'existe pas encore
+            ml_prices.append(round(pred, 2))
+            
+            # Formatage de la ligne de tendance
+            trend_prices_list = np.round(trend_prices, 2).tolist()
+            trend_prices_list.append(round(trend_pred, 2))
             
             ml_data = {
                 "prediction": round(pred, 2),
                 "range_min": round(pred - rmse, 2),
-                "range_max": round(pred + rmse, 2)
+                "range_max": round(pred + rmse, 2),
+                "ml_prices": ml_prices,
+                "trendline": trend_prices_list
             }
         else:
-            ml_data = None # Pas assez de données pour prédire
+            ml_data = None
             
         return jsonify({
             "ticker": ticker,
