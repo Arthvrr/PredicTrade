@@ -11,7 +11,6 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         body { font-family: 'Plus Jakarta Sans', sans-serif; }
-        /* Scrollbar custom pour la liste déroulante */
         ::-webkit-scrollbar { width: 6px; }
         ::-webkit-scrollbar-track { background: #0f172a; }
         ::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
@@ -21,7 +20,6 @@
     
     <main class="max-w-4xl mx-auto px-6 py-8">
         
-        <!-- Search Hero Section (Centered initially, sliding up on search) -->
         <div id="heroSection" class="transition-all duration-700 ease-in-out transform translate-y-[30vh]">
             <div class="text-center mb-8">
                 <h1 class="text-5xl md:text-6xl font-extrabold tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-emerald-400 mb-2">
@@ -42,14 +40,11 @@
                     </button>
                 </div>
                 
-                <!-- Autocomplete Dropdown -->
                 <div id="suggestionsBox" class="absolute z-50 w-full bg-slate-800 border border-slate-700 rounded-xl mt-2 hidden max-h-60 overflow-y-auto shadow-2xl overflow-hidden">
-                    <!-- JS fills this -->
                 </div>
 
                 <p id="errorMsg" class="text-red-400 text-sm mt-3 text-center hidden"></p>
 
-                <!-- ML Feature Selection Panel -->
                 <div class="mt-5 p-4 bg-slate-900/50 border border-slate-800 rounded-xl flex flex-wrap items-center justify-center gap-4 md:gap-6 text-sm">
                     <span class="text-slate-400 font-semibold flex items-center gap-1">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"></path></svg>
@@ -71,13 +66,16 @@
             </form>
         </div>
 
-        <!-- Dashboard (Hidden initially) -->
         <div id="dashboard" class="hidden flex flex-col gap-6 opacity-0 transition-opacity duration-1000">
             
+            <!-- Company Header with Logo -->
             <div class="flex flex-col md:flex-row md:items-end justify-between pb-4 border-b border-slate-800 mt-6">
-                <div>
-                    <h2 id="stockName" class="text-3xl font-bold text-white">--</h2>
-                    <p id="stockTicker" class="text-slate-400 text-sm font-mono mt-1">--</p>
+                <div class="flex items-center gap-4">
+                    <img id="stockLogo" src="" alt="" class="w-12 h-12 rounded-full hidden bg-white p-1.5 object-contain border border-slate-700 shadow-md">
+                    <div>
+                        <h2 id="stockName" class="text-3xl font-bold text-white">--</h2>
+                        <p id="stockTicker" class="text-slate-400 text-sm font-mono mt-1">--</p>
+                    </div>
                 </div>
                 <div class="mt-4 md:mt-0 text-right">
                     <p id="stockPrice" class="text-4xl font-bold text-white tracking-tight">--</p>
@@ -97,7 +95,6 @@
                 <button data-period="ALL" class="period-btn px-4 py-1.5 text-sm rounded-full bg-slate-800/50 border border-slate-700 text-slate-400 hover:text-white transition-all">ALL</button>
             </div>
 
-            <!-- Chart Container -->
             <div id="chartContainer" class="group bg-slate-900 border border-slate-800 p-4 rounded-xl h-[450px] relative shadow-xl">
                 <button id="fullscreenBtn" class="absolute top-4 right-4 z-20 p-2 bg-slate-800 text-slate-300 hover:text-white rounded-lg opacity-0 group-hover:opacity-100 transition-opacity border border-slate-600 hover:border-slate-400 shadow-lg">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4"></path></svg>
@@ -112,21 +109,12 @@
                 <canvas id="priceChart"></canvas>
             </div>
 
-            <!-- ML Prediction Card -->
             <div id="mlCard" class="bg-gradient-to-br from-blue-900/40 via-slate-900 to-slate-900 border border-blue-800/50 p-6 rounded-xl hidden shadow-2xl">
-                <div class="flex items-center gap-3 mb-2 relative">
+                <div class="flex items-center gap-3 mb-2">
                     <svg class="w-6 h-6 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
                     <h3 class="text-xl font-semibold text-white flex items-center gap-2">
                         Machine Learning Prediction 
                         <span class="text-sm text-slate-400 font-normal border border-slate-700 bg-slate-800 px-2 py-0.5 rounded-md">Linear Regression</span>
-                        
-                        <div class="group/tooltip relative flex items-center ml-1 cursor-help">
-                            <svg class="w-5 h-5 text-slate-500 hover:text-blue-400 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                            <div class="absolute bottom-full left-1/2 -translate-x-1/2 mb-3 w-72 p-4 bg-slate-800 text-sm text-slate-300 rounded-xl shadow-2xl opacity-0 group-hover/tooltip:opacity-100 transition-opacity pointer-events-none border border-slate-700 z-30 leading-relaxed">
-                                This model is dynamically trained on your selected features. It predicts the closing price of the next trading day and calculates the probable range using the historical Root Mean Squared Error (RMSE).
-                                <div class="absolute -bottom-2 left-1/2 -translate-x-1/2 w-4 h-4 bg-slate-800 border-b border-r border-slate-700 transform rotate-45"></div>
-                            </div>
-                        </div>
                     </h3>
                 </div>
                 <p class="text-slate-400 text-sm mb-6" id="activeFeaturesDisplay">Trained using: Close Price.</p>
@@ -150,6 +138,23 @@
                 </div>
             </div>
 
+            <!-- NOUVEAU: Educational Section -->
+            <div id="eduCard" class="bg-slate-900 border border-slate-800 p-6 rounded-xl hidden shadow-lg">
+                <h4 class="text-lg font-bold text-white mb-4 flex items-center gap-2">
+                    <svg class="w-5 h-5 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path></svg>
+                    How it works
+                </h4>
+                <div class="text-sm text-slate-400 space-y-4">
+                    <p><strong class="text-slate-200">Linear Regression:</strong> A statistical method that models the relationship between a dependent variable (future price) and independent variables (historical prices, volume, etc.) by fitting a linear equation to observed data.</p>
+                    <p><strong class="text-slate-200">Simple Moving Average (SMA):</strong> An indicator that calculates the average of a selected range of closing prices, over a number of periods. It filters out the daily "noise" to reveal the underlying trend.</p>
+                    <ul class="list-disc pl-5 space-y-1">
+                        <li><strong class="text-slate-300">SMA 5:</strong> The average over the last 5 days (1 trading week). It reacts quickly to recent price changes.</li>
+                        <li><strong class="text-slate-300">SMA 10:</strong> The average over the last 10 days (2 trading weeks). It's slower and provides a broader view of the short-term direction.</li>
+                    </ul>
+                    <p><strong class="text-slate-200">Probable Range (RMSE):</strong> The Root Mean Squared Error measures the average distance between the model's past predictions and the actual prices. We use it to create a ± 1 Standard Deviation confidence bracket around tomorrow's prediction.</p>
+                </div>
+            </div>
+
         </div>
     </main>
 
@@ -158,7 +163,6 @@
         let currentTicker = "";
         let currentPeriod = "1Y";
 
-        // Autocomplete Logic
         const tickerInput = document.getElementById('tickerInput');
         const suggestionsBox = document.getElementById('suggestionsBox');
         let debounceTimeout = null;
@@ -191,10 +195,9 @@
                 } catch (err) {
                     console.error("Autocomplete error", err);
                 }
-            }, 250); // Attend 250ms avant d'interroger l'API (évite le spam)
+            }, 250);
         });
 
-        // Clique en dehors pour fermer l'auto-complétion
         document.addEventListener('click', (e) => {
             if(!tickerInput.contains(e.target) && !suggestionsBox.contains(e.target)) {
                 suggestionsBox.classList.add('hidden');
@@ -204,11 +207,9 @@
         window.selectTicker = function(symbol) {
             tickerInput.value = symbol;
             suggestionsBox.classList.add('hidden');
-            // Auto-submit
             document.getElementById('searchForm').dispatchEvent(new Event('submit'));
         }
 
-        // Fullscreen Logic
         const chartContainer = document.getElementById('chartContainer');
         const fullscreenBtn = document.getElementById('fullscreenBtn');
 
@@ -233,7 +234,6 @@
             currentTicker = document.getElementById('tickerInput').value.toUpperCase();
             suggestionsBox.classList.add('hidden');
             
-            // Animation : On monte le Hero Section vers le haut
             const heroSection = document.getElementById('heroSection');
             heroSection.classList.remove('translate-y-[30vh]');
             heroSection.classList.add('translate-y-0');
@@ -250,7 +250,6 @@
             });
         });
 
-        // Si on change les features, on relance l'entraînement
         document.getElementById('featVolume').addEventListener('change', () => currentTicker && fetchData(currentTicker, currentPeriod));
         document.getElementById('featSma').addEventListener('change', () => currentTicker && fetchData(currentTicker, currentPeriod));
 
@@ -269,6 +268,8 @@
             const dashboard = document.getElementById('dashboard');
             const chartLoading = document.getElementById('chartLoading');
             const mlCard = document.getElementById('mlCard');
+            const eduCard = document.getElementById('eduCard');
+            const logoEl = document.getElementById('stockLogo');
             
             errorMsg.classList.add('hidden');
             dashboard.classList.remove('hidden');
@@ -277,6 +278,7 @@
             
             chartLoading.classList.remove('hidden');
             mlCard.classList.add('hidden');
+            eduCard.classList.add('hidden');
 
             const features = ['close'];
             const activeFeaturesNames = ['Close Price'];
@@ -304,12 +306,19 @@
                     document.getElementById('stockTicker').textContent = data.ticker;
                     document.getElementById('stockPrice').textContent = `$${data.current_price.toFixed(2)}`;
                     
+                    if (data.domain) {
+                        // Icon Horse récupère les icônes haute définition (jusqu'à 512x512)
+                        logoEl.src = `https://icon.horse/icon/${data.domain}`;
+                        logoEl.classList.remove('hidden');
+                    } else {
+                        logoEl.classList.add('hidden');
+                    }
+                    
                     const varEl = document.getElementById('stockVar');
                     const sign = data.variation >= 0 ? '+' : '';
                     varEl.textContent = `${sign}${data.variation}% over ${data.period}`;
                     varEl.className = data.variation >= 0 ? "text-sm font-semibold mt-1 text-emerald-400" : "text-sm font-semibold mt-1 text-red-400";
 
-                    // On envoie les nouvelles données au graphique
                     updateChart(data.dates, data.prices, data.ml, data.volume_data, data.sma5_data, data.sma10_data);
 
                     if (data.ml) {
@@ -318,6 +327,7 @@
                         document.getElementById('mlMin').textContent = `$${data.ml.range_min.toFixed(2)}`;
                         document.getElementById('mlMax').textContent = `$${data.ml.range_max.toFixed(2)}`;
                         mlCard.classList.remove('hidden');
+                        eduCard.classList.remove('hidden');
                     }
 
                 } else {
@@ -353,12 +363,11 @@
                 yAxisID: 'y'
             }];
 
-            // Affichage des Moyennes Mobiles
             if (sma5Data) {
                 datasets.push({
                     label: 'SMA 5',
                     data: sma5Data,
-                    borderColor: '#10b981', // Vert émeraude
+                    borderColor: '#10b981',
                     borderWidth: 1.5,
                     pointRadius: 0,
                     fill: false,
@@ -371,7 +380,7 @@
                 datasets.push({
                     label: 'SMA 10',
                     data: sma10Data,
-                    borderColor: '#8b5cf6', // Violet
+                    borderColor: '#8b5cf6',
                     borderWidth: 1.5,
                     pointRadius: 0,
                     fill: false,
@@ -380,7 +389,6 @@
                 });
             }
 
-            // Affichage du Modèle ML
             if (mlData) {
                 datasets.push({
                     label: 'Global Trend',
@@ -412,15 +420,14 @@
                 });
             }
 
-            // Affichage des Volumes en barres (dessinées en arrière-plan)
             if (volumeData) {
                 datasets.push({
                     type: 'bar',
                     label: 'Volume',
                     data: volumeData,
-                    backgroundColor: 'rgba(148, 163, 184, 0.2)', // Gris semi-transparent
+                    backgroundColor: 'rgba(148, 163, 184, 0.2)',
                     yAxisID: 'yVolume',
-                    order: 99 // Pour que les barres soient derrière les lignes
+                    order: 99
                 });
             }
             
@@ -451,7 +458,6 @@
                             callbacks: {
                                 label: function(context) {
                                     if (context.parsed.y === null) return null;
-                                    // Formater le volume proprement s'il est affiché
                                     if (context.dataset.label === 'Volume') {
                                         return `Volume: ${context.parsed.y.toLocaleString()}`;
                                     }
@@ -473,13 +479,11 @@
                                 callback: function(value) { return '$' + value; }
                             }
                         },
-                        // Nouvel axe dédié aux Volumes
                         yVolume: {
                             type: 'linear',
                             position: 'right',
-                            display: false, // On cache les chiffres de l'axe pour ne pas surcharger
+                            display: false,
                             min: 0,
-                            // Astuce : on multiplie le max par 4 pour que les barres de volume ne dépassent pas le quart inférieur du graphique
                             suggestedMax: volumeData ? Math.max(...volumeData.filter(v => v !== null)) * 4 : 100
                         }
                     }

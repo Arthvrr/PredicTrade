@@ -11,7 +11,6 @@ app = Flask(__name__)
 def home():
     return render_template('index.html')
 
-# Endpoint pour l'auto-complétion de la barre de recherche
 @app.route('/api/search', methods=['GET'])
 def search_ticker():
     query = request.args.get('q', '').strip()
@@ -66,7 +65,12 @@ def get_stock_data():
         if hist.empty:
             return jsonify({"error": f"No data found for '{ticker}' on this period."}), 404
             
-        company_name = stock.info.get('shortName', ticker)
+        info = stock.info
+        company_name = info.get('shortName', ticker)
+        
+        # Extraction du domaine web pour le logo Clearbit
+        website = info.get('website', '')
+        domain = website.replace('https://', '').replace('http://', '').replace('www.', '').split('/')[0] if website else None
         
         if settings['interval'] in ['5m', '15m', '1h']:
             dates = hist.index.strftime('%Y-%m-%d %H:%M').tolist()
@@ -79,7 +83,6 @@ def get_stock_data():
         last_price = prices[-1]
         variation_pct = round(((last_price - first_price) / first_price) * 100, 2) if first_price > 0 else 0
         
-        # Ligne de tendance globale
         time_X = np.arange(len(prices)).reshape(-1, 1)
         trend_model = LinearRegression()
         trend_model.fit(time_X, prices)
@@ -90,7 +93,6 @@ def get_stock_data():
         df = pd.DataFrame({'Close': prices})
         feature_cols = ['Close']
         
-        # Extraction des indicateurs pour l'affichage visuel
         frontend_volume = None
         frontend_sma5 = None
         frontend_sma10 = None
@@ -105,7 +107,6 @@ def get_stock_data():
             df['SMA_10'] = df['Close'].rolling(window=10).mean()
             feature_cols.extend(['SMA_5', 'SMA_10'])
             
-            # Convertir les NaN (générés par le rolling) en None pour que le JSON fonctionne
             frontend_sma5 = [round(x, 2) if pd.notna(x) else None for x in df['SMA_5']]
             frontend_sma10 = [round(x, 2) if pd.notna(x) else None for x in df['SMA_10']]
 
@@ -153,6 +154,7 @@ def get_stock_data():
         return jsonify({
             "ticker": ticker,
             "name": company_name,
+            "domain": domain,
             "current_price": last_price,
             "variation": variation_pct,
             "period": period,
