@@ -81,7 +81,7 @@ def get_stock_data():
         last_price = prices[-1]
         variation_pct = round(((last_price - first_price) / first_price) * 100, 2) if first_price > 0 else 0
         
-        # 1. Tendance globale (Commune aux graphiques)
+        # 1. Tendance globale
         time_X = np.arange(len(prices)).reshape(-1, 1)
         trend_model = LinearRegression()
         trend_model.fit(time_X, prices)
@@ -150,14 +150,23 @@ def get_stock_data():
             rf_prices = [None] * offset + np.round(rf_hist, 2).tolist()
             rf_prices.append(round(rf_pred, 2))
             
+            # NOUVEAU : Extraction de l'importance des variables (Cerveau du Random Forest)
+            importances = rf_model.feature_importances_
+            feature_importance_dict = {
+                feat: round(float(imp) * 100, 1) 
+                for feat, imp in zip(feature_cols, importances)
+            }
+            # Trier le dictionnaire du plus important au moins important
+            feature_importance_dict = dict(sorted(feature_importance_dict.items(), key=lambda item: item[1], reverse=True))
+            
             ml_rf = {
                 "prediction": round(rf_pred, 2),
                 "range_min": round(rf_pred - rf_rmse, 2),
                 "range_max": round(rf_pred + rf_rmse, 2),
-                "ml_prices": rf_prices
+                "ml_prices": rf_prices,
+                "importances": feature_importance_dict # Envoi au frontend
             }
             
-            # Ajout des données de demain pour le frontend
             dates.append("Tomorrow (Prediction)")
             prices.append(None)
             if frontend_volume: frontend_volume.append(None)

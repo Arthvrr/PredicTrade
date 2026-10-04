@@ -3,27 +3,38 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PredicTrade | Crossing Machine Learning with Stocks Exchange</title>
+    <title>PredicTrade | Quantitative Machine Learning</title>
+    
+    <!-- Nouvelle Police : Space Grotesk pour un look Quant/Tech unique -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Chart.js et Plugins (Zoom & Hammer.js) -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/hammerjs@2.0.8"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-zoom@2.0.1/dist/chartjs-plugin-zoom.min.js"></script>
+
     <style>
-        body { font-family: 'Plus Jakarta Sans', sans-serif; }
+        body { font-family: 'Space Grotesk', sans-serif; }
         ::-webkit-scrollbar { width: 6px; }
         ::-webkit-scrollbar-track { background: #0f172a; }
         ::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
+        /* Style pour les graphiques en plein écran */
+        .fullscreen-active { padding: 2rem !important; background-color: #0f172a !important; }
     </style>
 </head>
-<body class="bg-slate-950 text-slate-200 min-h-screen font-sans antialiased selection:bg-blue-500/30 overflow-x-hidden">
+<body class="bg-slate-950 text-slate-200 min-h-screen antialiased selection:bg-blue-500/30 overflow-x-hidden">
     
     <main class="max-w-4xl mx-auto px-6 py-8">
         
         <!-- Search Section -->
         <div id="heroSection" class="transition-all duration-700 ease-in-out transform translate-y-[30vh]">
             <div class="text-center mb-8">
-                <h1 class="text-5xl md:text-6xl font-extrabold tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-emerald-400 mb-2">
+                <h1 class="text-5xl md:text-6xl font-bold tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-emerald-400 mb-2">
                     PredicTrade
                 </h1>
                 <p class="text-slate-400 text-lg md:text-xl font-medium tracking-wide">
@@ -42,7 +53,6 @@
                 </div>
                 
                 <div id="suggestionsBox" class="absolute z-50 w-full bg-slate-800 border border-slate-700 rounded-xl mt-2 hidden max-h-60 overflow-y-auto shadow-2xl overflow-hidden"></div>
-
                 <p id="errorMsg" class="text-red-400 text-sm mt-3 text-center hidden"></p>
 
                 <!-- Feature Toggles -->
@@ -111,14 +121,22 @@
                 <!-- SECTION 1 : LINEAR REGRESSION -->
                 <!-- ============================================== -->
                 <div class="space-y-6">
-                    <h3 class="text-2xl font-bold text-white border-l-4 border-blue-500 pl-4">Model 1: Linear Regression</h3>
+                    <h3 class="text-2xl font-bold text-white border-l-4 border-blue-500 pl-4 flex items-center justify-between">
+                        Model 1: Linear Regression
+                        <span class="text-xs font-normal text-slate-500 bg-slate-900 px-3 py-1 rounded-full border border-slate-800">Scroll to Zoom</span>
+                    </h3>
                     
-                    <!-- Graphique LR -->
-                    <div class="bg-slate-900 border border-slate-800 p-4 rounded-xl h-[450px] shadow-xl">
+                    <div class="bg-slate-900 border border-slate-800 p-4 rounded-xl h-[450px] shadow-xl relative group chart-wrapper">
+                        <!-- Contrôles du graphique -->
+                        <div class="absolute top-4 right-4 z-20 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                            <button onclick="resetZoom('chartLR')" class="p-2 bg-slate-800 text-slate-300 hover:text-white rounded-lg border border-slate-600 hover:border-slate-400 shadow-lg text-xs font-semibold backdrop-blur-sm">Reset Zoom</button>
+                            <button onclick="toggleFullscreen(this)" class="p-2 bg-slate-800 text-slate-300 hover:text-white rounded-lg border border-slate-600 hover:border-slate-400 shadow-lg backdrop-blur-sm" title="Fullscreen">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4"></path></svg>
+                            </button>
+                        </div>
                         <canvas id="chartLR"></canvas>
                     </div>
 
-                    <!-- Carte de Stats LR -->
                     <div class="bg-gradient-to-br from-blue-900/40 via-slate-900 to-slate-900 border border-blue-800/50 p-6 rounded-xl shadow-lg">
                         <div class="flex items-center gap-3 mb-2">
                             <svg class="w-6 h-6 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
@@ -145,35 +163,42 @@
                         </div>
                     </div>
 
-                    <!-- Explication LR -->
+                    <!-- NOUVELLE Explication LR (Détaillée) -->
                     <div class="bg-slate-900 border border-slate-800 p-6 rounded-xl shadow-lg">
                         <h4 class="text-lg font-bold text-white mb-4 flex items-center gap-2">
-                            <svg class="w-5 h-5 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                            How Linear Regression works
+                            <svg class="w-5 h-5 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path></svg>
+                            The Science Behind Linear Regression
                         </h4>
-                        <div class="text-sm text-slate-400 space-y-4">
-                            <p><strong>Linear Regression</strong> is a statistical method that tries to draw a straight line through the data. It assumes that the future price will follow the same linear trajectory as the past.</p>
-                            <p>While it is excellent for finding the <strong>Global Trend</strong> (the grey dashed line), it often struggles to adapt to sudden market shocks or complex conditions like volume spikes, because the stock market is highly non-linear.</p>
-                            <p><strong>Probable Range (RMSE):</strong> The Root Mean Squared Error measures the average distance between the model's past predictions and the actual prices. We use it to create a confidence bracket around tomorrow's prediction.</p>
+                        <div class="text-sm text-slate-400 space-y-4 leading-relaxed">
+                            <p><strong class="text-slate-200">The Mechanics:</strong> This foundational statistical approach attempts to model the relationship between variables by fitting a linear equation—a straight line—to the observed historical data. It mathematically minimizes the distance between this line and all past data points (minimizing the sum of squared residuals).</p>
+                            <p><strong class="text-slate-200">Strengths & Limitations:</strong> Linear Regression is exceptional at identifying the <strong>Global Macro Trend</strong> of an asset over time (the grey dashed line). However, financial markets are inherently chaotic. A straight line cannot comprehend non-linear events, such as sudden volume spikes or the psychological impact of moving average crossovers. It fundamentally assumes tomorrow will simply be a linear continuation of yesterday.</p>
+                            <p><strong class="text-slate-200">Understanding the Probable Range (RMSE):</strong> To measure risk, we calculate the Root Mean Squared Error. This metric quantifies the historical standard deviation of the model's past predictions compared to actual closing prices. By applying this ±1 Standard Deviation bracket to tomorrow's prediction, we define a confidence zone where the price is statistically most likely to land.</p>
                         </div>
                     </div>
                 </div>
 
-                <!-- Ligne de séparation visuelle -->
                 <div class="w-full h-px bg-gradient-to-r from-transparent via-slate-700 to-transparent"></div>
 
                 <!-- ============================================== -->
                 <!-- SECTION 2 : RANDOM FOREST -->
                 <!-- ============================================== -->
                 <div class="space-y-6">
-                    <h3 class="text-2xl font-bold text-white border-l-4 border-emerald-500 pl-4">Model 2: Random Forest</h3>
+                    <h3 class="text-2xl font-bold text-white border-l-4 border-emerald-500 pl-4 flex items-center justify-between">
+                        Model 2: Random Forest
+                        <span class="text-xs font-normal text-slate-500 bg-slate-900 px-3 py-1 rounded-full border border-slate-800">Scroll to Zoom</span>
+                    </h3>
                     
-                    <!-- Graphique RF -->
-                    <div class="bg-slate-900 border border-slate-800 p-4 rounded-xl h-[450px] shadow-xl">
+                    <div class="bg-slate-900 border border-slate-800 p-4 rounded-xl h-[450px] shadow-xl relative group chart-wrapper">
+                        <!-- Contrôles du graphique -->
+                        <div class="absolute top-4 right-4 z-20 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                            <button onclick="resetZoom('chartRF')" class="p-2 bg-slate-800 text-slate-300 hover:text-white rounded-lg border border-slate-600 hover:border-slate-400 shadow-lg text-xs font-semibold backdrop-blur-sm">Reset Zoom</button>
+                            <button onclick="toggleFullscreen(this)" class="p-2 bg-slate-800 text-slate-300 hover:text-white rounded-lg border border-slate-600 hover:border-slate-400 shadow-lg backdrop-blur-sm" title="Fullscreen">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4"></path></svg>
+                            </button>
+                        </div>
                         <canvas id="chartRF"></canvas>
                     </div>
 
-                    <!-- Carte de Stats RF -->
                     <div class="bg-gradient-to-br from-emerald-900/30 via-slate-900 to-slate-900 border border-emerald-800/40 p-6 rounded-xl shadow-lg">
                         <div class="flex items-center gap-3 mb-2">
                             <svg class="w-6 h-6 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
@@ -198,18 +223,31 @@
                                 </div>
                             </div>
                         </div>
+
+                        <!-- Feature Importance Panel -->
+                        <div class="mt-6 bg-slate-950 p-5 rounded-xl border border-slate-800 shadow-inner">
+                            <p class="text-sm text-slate-400 uppercase tracking-wider font-bold mb-4 flex items-center gap-2">
+                                <svg class="w-5 h-5 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg>
+                                Inside the Forest's Brain (Feature Importance)
+                            </p>
+                            <p class="text-xs text-slate-500 mb-4">Unlike humans, the algorithm tells us exactly what math influenced its 100 decision trees. Notice how some indicators impact the final vote more than others.</p>
+                            
+                            <div id="rfBrain" class="space-y-4">
+                                <!-- Le Javascript va générer les barres de progression ici -->
+                            </div>
+                        </div>
                     </div>
 
-                    <!-- Explication RF -->
+                    <!-- NOUVELLE Explication RF (Détaillée) -->
                     <div class="bg-slate-900 border border-slate-800 p-6 rounded-xl shadow-lg">
                         <h4 class="text-lg font-bold text-white mb-4 flex items-center gap-2">
-                            <svg class="w-5 h-5 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                            How Random Forest works
+                            <svg class="w-5 h-5 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path></svg>
+                            The Science Behind Random Forest
                         </h4>
-                        <div class="text-sm text-slate-400 space-y-4">
-                            <p><strong>Random Forest</strong> is an advanced <em>ensemble learning</em> algorithm. Instead of trying to draw a single line, it generates hundreds of randomized "Decision Trees" during training.</p>
-                            <p>To predict tomorrow's price, it asks all 100 trees to analyze the current data (Price, Volume, Moving Averages) and then averages their answers. Because it uses branching logic rather than lines, it is incredibly powerful at capturing <strong>non-linear dynamics</strong> (e.g., "If SMA 5 crosses SMA 10 AND Volume is high, then the stock will pump").</p>
-                            <p>You'll often notice that its <em>Probable Range</em> adjusts more dynamically to recent volatility than the Linear Regression model.</p>
+                        <div class="text-sm text-slate-400 space-y-4 leading-relaxed">
+                            <p><strong class="text-slate-200">The Power of Ensemble Learning:</strong> Random Forest is a highly advanced machine learning algorithm that abandons the concept of straight lines. Instead, it generates a "forest" consisting of hundreds of randomized <em>Decision Trees</em> during the training phase. Each tree looks at a different random subset of the historical data and features to prevent the model from simply memorizing the past (overfitting).</p>
+                            <p><strong class="text-slate-200">Capturing Non-Linear Dynamics:</strong> When predicting tomorrow's price, the algorithm asks all 100 trees to cast a vote based on current market conditions, and then averages their predictions. Because trees use branching, conditional logic (e.g., <em>"IF the 5-day SMA crosses below the 10-day SMA AND trading volume is exceptionally high, THEN the price will likely fall"</em>), this model excels at capturing complex, chaotic market behaviors that a simple regression misses.</p>
+                            <p><strong class="text-slate-200">Inside the Algorithm's Brain:</strong> Unlike "black box" models, Random Forests provide transparency through <em>Feature Importance</em>. By mathematically measuring how much each indicator reduced uncertainty across all 100 trees, the algorithm explicitly tells us which data points (Volume, Moving Averages, or Past Price) were the true catalysts for its final prediction.</p>
                         </div>
                     </div>
                 </div>
@@ -285,6 +323,35 @@
         document.getElementById('featVolume').addEventListener('change', () => currentTicker && fetchData(currentTicker, currentPeriod));
         document.getElementById('featSma').addEventListener('change', () => currentTicker && fetchData(currentTicker, currentPeriod));
 
+        // Fonction pour réinitialiser le zoom
+        window.resetZoom = function(chartId) {
+            if (chartId === 'chartLR' && instLR) instLR.resetZoom();
+            if (chartId === 'chartRF' && instRF) instRF.resetZoom();
+        }
+
+        // Fonction de plein écran ciblée sur le graphique
+        window.toggleFullscreen = function(btn) {
+            const container = btn.closest('.chart-wrapper');
+            if (!document.fullscreenElement) {
+                container.requestFullscreen().catch(err => {
+                    console.error(`Error attempting to enable fullscreen: ${err.message}`);
+                });
+            } else {
+                document.exitFullscreen();
+            }
+        }
+
+        // Écouter les changements de plein écran pour ajuster le style
+        document.addEventListener('fullscreenchange', () => {
+            document.querySelectorAll('.chart-wrapper').forEach(container => {
+                if (document.fullscreenElement === container) {
+                    container.classList.add('fullscreen-active');
+                } else {
+                    container.classList.remove('fullscreen-active');
+                }
+            });
+        });
+
         async function fetchData(ticker, period) {
             const dashboard = document.getElementById('dashboard');
             const loading = document.getElementById('globalLoading');
@@ -315,7 +382,6 @@
                 const data = await response.json();
                 
                 if (response.ok) {
-                    // Mettre à jour le header
                     document.getElementById('stockName').textContent = data.name;
                     document.getElementById('stockTicker').textContent = data.ticker;
                     document.getElementById('stockPrice').textContent = `$${data.current_price.toFixed(2)}`;
@@ -330,26 +396,43 @@
                     varEl.textContent = `${data.variation >= 0 ? '+' : ''}${data.variation}% over ${data.period}`;
                     varEl.className = data.variation >= 0 ? "text-sm font-semibold mt-1 text-emerald-400" : "text-sm font-semibold mt-1 text-red-400";
 
-                    // Mettre à jour le texte des features
                     document.querySelectorAll('.activeFeaturesDisplay').forEach(el => {
                         el.textContent = `Trained using: ${activeNames.join(', ')}.`;
                     });
 
-                    // Si les modèles ont pu s'entraîner
                     if (data.ml_lr && data.ml_rf) {
-                        // Remplir carte LR
+                        // Remplissage LR
                         document.getElementById('predLR').textContent = `$${data.ml_lr.prediction.toFixed(2)}`;
                         document.getElementById('minLR').textContent = `$${data.ml_lr.range_min.toFixed(2)}`;
                         document.getElementById('maxLR').textContent = `$${data.ml_lr.range_max.toFixed(2)}`;
                         
-                        // Remplir carte RF
+                        // Remplissage RF
                         document.getElementById('predRF').textContent = `$${data.ml_rf.prediction.toFixed(2)}`;
                         document.getElementById('minRF').textContent = `$${data.ml_rf.range_min.toFixed(2)}`;
                         document.getElementById('maxRF').textContent = `$${data.ml_rf.range_max.toFixed(2)}`;
 
-                        // Dessiner les deux graphiques
-                        instLR = renderChart(instLR, 'chartLR', data, data.ml_lr.ml_prices, '#3b82f6', '#f59e0b'); // Bleu & Orange
-                        instRF = renderChart(instRF, 'chartRF', data, data.ml_rf.ml_prices, '#3b82f6', '#10b981'); // Bleu & Emeraude
+                        const brainContainer = document.getElementById('rfBrain');
+                        brainContainer.innerHTML = '';
+                        
+                        for (const [feat, imp] of Object.entries(data.ml_rf.importances)) {
+                            let featLabel = feat;
+                            if (feat === 'Close') featLabel = 'Prior Close Price';
+                            
+                            brainContainer.innerHTML += `
+                                <div>
+                                    <div class="flex justify-between text-xs text-slate-300 font-semibold mb-1">
+                                        <span>${featLabel}</span>
+                                        <span>${imp}%</span>
+                                    </div>
+                                    <div class="w-full bg-slate-800 rounded-full h-2">
+                                        <div class="bg-gradient-to-r from-emerald-600 to-emerald-400 h-2 rounded-full" style="width: ${imp}%"></div>
+                                    </div>
+                                </div>
+                            `;
+                        }
+
+                        instLR = renderChart(instLR, 'chartLR', data, data.ml_lr.ml_prices, '#3b82f6', '#f59e0b');
+                        instRF = renderChart(instRF, 'chartRF', data, data.ml_rf.ml_prices, '#3b82f6', '#10b981');
                     }
 
                     loading.classList.add('hidden');
@@ -368,7 +451,6 @@
             }
         }
 
-        // Fonction générique pour dessiner un graphique ML
         function renderChart(instance, canvasId, data, mlPrices, realColor, mlColor) {
             const ctx = document.getElementById(canvasId).getContext('2d');
             if (instance) instance.destroy();
@@ -413,10 +495,10 @@
                 options: {
                     responsive: true, maintainAspectRatio: false, interaction: { intersect: false, mode: 'index' },
                     plugins: {
-                        legend: { display: true, labels: { color: '#94a3b8', boxWidth: 12, padding: 20, font: { family: "'Plus Jakarta Sans', sans-serif", weight: '600' } } },
+                        legend: { display: true, labels: { color: '#94a3b8', boxWidth: 12, padding: 20, font: { family: "'Space Grotesk', sans-serif", weight: '600' } } },
                         tooltip: {
                             backgroundColor: 'rgba(15, 23, 42, 0.95)', titleColor: '#94a3b8', bodyColor: '#f8fafc', borderColor: '#334155', borderWidth: 1, padding: 12,
-                            titleFont: { family: "'Plus Jakarta Sans', sans-serif" }, bodyFont: { family: "'Plus Jakarta Sans', sans-serif", size: 14, weight: '500' },
+                            titleFont: { family: "'Space Grotesk', sans-serif" }, bodyFont: { family: "'Space Grotesk', sans-serif", size: 14, weight: '500' },
                             callbacks: {
                                 label: function(context) {
                                     if (context.parsed.y === null) return null;
@@ -424,11 +506,20 @@
                                     return `${context.dataset.label}: $${context.parsed.y}`; 
                                 }
                             }
+                        },
+                        zoom: {
+                            pan: { enabled: true, mode: 'x' },
+                            zoom: {
+                                wheel: { enabled: true, speed: 0.1 },
+                                pinch: { enabled: true },
+                                mode: 'x',
+                                drag: { enabled: false }
+                            }
                         }
                     },
                     scales: {
-                        x: { grid: { display: false }, ticks: { maxTicksLimit: 8, color: '#64748b', font: { family: "'Plus Jakarta Sans', sans-serif" } } },
-                        y: { grid: { color: '#1e293b' }, ticks: { color: '#64748b', font: { family: "'Plus Jakarta Sans', sans-serif" }, callback: function(value) { return '$' + value; } } },
+                        x: { grid: { display: false }, ticks: { maxTicksLimit: 8, color: '#64748b', font: { family: "'Space Grotesk', sans-serif" } } },
+                        y: { grid: { color: '#1e293b' }, ticks: { color: '#64748b', font: { family: "'Space Grotesk', sans-serif" }, callback: function(value) { return '$' + value; } } },
                         yVolume: { type: 'linear', position: 'right', display: false, min: 0, suggestedMax: data.volume_data ? Math.max(...data.volume_data.filter(v => v !== null)) * 4 : 100 }
                     }
                 }
