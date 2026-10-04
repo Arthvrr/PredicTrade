@@ -1,16 +1,22 @@
 <!DOCTYPE html>
-<html lang="fr">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>PredicTrade</title>
+    <!-- Importation de la nouvelle police -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body { font-family: 'Plus Jakarta Sans', sans-serif; }
+    </style>
 </head>
 <body class="bg-slate-950 text-slate-200 min-h-screen font-sans antialiased selection:bg-blue-500/30">
     
     <main class="max-w-4xl mx-auto px-6 py-12">
-        <!-- En-tête et Recherche -->
         <div class="text-center mb-12">
             <h1 class="text-4xl font-extrabold tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-emerald-400 mb-6">
                 PredicTrade
@@ -19,18 +25,16 @@
             <form id="searchForm" class="max-w-md mx-auto relative">
                 <div class="relative flex items-center">
                     <svg class="w-5 h-5 absolute left-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
-                    <input type="text" id="tickerInput" placeholder="Rechercher un ticker (ex: AAPL)" required
+                    <input type="text" id="tickerInput" placeholder="Search a ticker (e.g. AAPL)" required
                         class="w-full bg-slate-900 border border-slate-700 rounded-xl py-3 pl-12 pr-4 text-white placeholder-slate-500 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all uppercase">
                     <button type="submit" class="absolute right-2 px-4 py-1.5 bg-blue-600 hover:bg-blue-500 text-white text-sm font-medium rounded-lg transition-colors">
-                        Rechercher
+                        Search
                     </button>
                 </div>
                 <p id="errorMsg" class="text-red-400 text-sm mt-3 hidden"></p>
             </form>
         </div>
 
-        <!-- Dashboard des résultats (Masqué par défaut) -->
-        <!-- Dashboard des résultats (Masqué par défaut) -->
         <div id="dashboard" class="hidden flex flex-col gap-6">
             
             <div class="flex flex-col md:flex-row md:items-end justify-between pb-4 border-b border-slate-800">
@@ -44,7 +48,6 @@
                 </div>
             </div>
 
-            <!-- Filtres de temps -->
             <div class="flex flex-wrap gap-2" id="timeFilters">
                 <button data-period="1D" class="period-btn px-3 py-1 text-sm rounded-full bg-slate-800 text-slate-400 hover:text-white transition-colors">1D</button>
                 <button data-period="1W" class="period-btn px-3 py-1 text-sm rounded-full bg-slate-800 text-slate-400 hover:text-white transition-colors">1W</button>
@@ -57,21 +60,38 @@
                 <button data-period="ALL" class="period-btn px-3 py-1 text-sm rounded-full bg-slate-800 text-slate-400 hover:text-white transition-colors">ALL</button>
             </div>
 
-            <!-- Graphique -->
-            <div class="bg-slate-900 border border-slate-800 p-4 rounded-xl h-[400px] relative">
+            <!-- Chart Container (Group added for hover effects) -->
+            <div id="chartContainer" class="group bg-slate-900 border border-slate-800 p-4 rounded-xl h-[400px] relative">
+                
+                <!-- Fullscreen Button -->
+                <button id="fullscreenBtn" class="absolute top-4 right-4 z-20 p-2 bg-slate-800/80 text-slate-300 hover:text-white rounded-lg opacity-0 group-hover:opacity-100 transition-opacity backdrop-blur-sm border border-slate-700">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4"></path></svg>
+                </button>
+
                 <div id="chartLoading" class="hidden absolute inset-0 bg-slate-900/80 flex items-center justify-center rounded-xl z-10">
                     <div class="w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
                 </div>
                 <canvas id="priceChart"></canvas>
             </div>
 
-            <!-- NOUVEAU : Écriteau de Prédiction ML -->
             <div id="mlCard" class="bg-gradient-to-r from-blue-900/40 to-slate-800 border border-blue-800/50 p-6 rounded-xl hidden">
-                <div class="flex items-center gap-3 mb-2">
+                <div class="flex items-center gap-3 mb-2 relative">
                     <svg class="w-6 h-6 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
-                    <h3 class="text-lg font-semibold text-blue-100">Prédiction Machine Learning (Régression Linéaire)</h3>
+                    <h3 class="text-lg font-semibold text-blue-100 flex items-center gap-2">
+                        Machine Learning Prediction 
+                        <span class="text-sm text-slate-400 font-normal">(Linear Regression)</span>
+                        
+                        <!-- Tooltip Icon -->
+                        <div class="group relative flex items-center ml-1 cursor-help">
+                            <svg class="w-5 h-5 text-slate-500 hover:text-blue-400 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                            <!-- Tooltip Content -->
+                            <div class="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-64 p-3 bg-slate-800 text-xs text-slate-300 rounded-lg shadow-xl opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none border border-slate-700 z-30">
+                                This model analyzes the historical prices of the selected period to find a linear correlation. It predicts the closing price of the next trading day and calculates the probable range using the historical Root Mean Squared Error (RMSE).
+                            </div>
+                        </div>
+                    </h3>
                 </div>
-                <p class="text-slate-400 text-sm mb-4">Le modèle estime la valeur du prochain point basé sur la corrélation statistique de la période sélectionnée.</p>
+                <p class="text-slate-400 text-sm mb-4">The model estimates the value of the next data point based on statistical correlation over the selected timeframe.</p>
                 
                 <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
                     <div class="bg-slate-900/50 p-4 rounded-lg border border-slate-700/50">
@@ -79,7 +99,7 @@
                         <p id="mlPred" class="text-2xl font-bold text-white">--</p>
                     </div>
                     <div class="bg-slate-900/50 p-4 rounded-lg border border-slate-700/50 col-span-2 md:col-span-3">
-                        <p class="text-xs text-slate-400 uppercase tracking-wider mb-1">Plage Probable (± 1 Écart-type)</p>
+                        <p class="text-xs text-slate-400 uppercase tracking-wider mb-1">Probable Range (± 1 Std Dev)</p>
                         <div class="flex items-center gap-4 mt-1">
                             <span id="mlMin" class="text-xl font-bold text-slate-300">--</span>
                             <div class="flex-1 h-2 bg-slate-700 rounded-full relative">
@@ -99,6 +119,29 @@
         let chartInstance = null;
         let currentTicker = "";
         let currentPeriod = "1Y";
+
+        // Fullscreen Logic
+        const chartContainer = document.getElementById('chartContainer');
+        const fullscreenBtn = document.getElementById('fullscreenBtn');
+
+        fullscreenBtn.addEventListener('click', () => {
+            if (!document.fullscreenElement) {
+                chartContainer.requestFullscreen().catch(err => {
+                    console.error(`Error attempting to enable fullscreen mode: ${err.message}`);
+                });
+            } else {
+                document.exitFullscreen();
+            }
+        });
+
+        // Listen for fullscreen changes to adjust padding/background
+        document.addEventListener('fullscreenchange', () => {
+            if (document.fullscreenElement) {
+                chartContainer.classList.add('p-8'); // Add more padding in fullscreen
+            } else {
+                chartContainer.classList.remove('p-8');
+            }
+        });
 
         document.getElementById('searchForm').addEventListener('submit', (e) => {
             e.preventDefault();
@@ -152,10 +195,9 @@
                     
                     const varEl = document.getElementById('stockVar');
                     const sign = data.variation >= 0 ? '+' : '';
-                    varEl.textContent = `${sign}${data.variation}% sur ${data.period}`;
+                    varEl.textContent = `${sign}${data.variation}% over ${data.period}`;
                     varEl.className = data.variation >= 0 ? "text-sm font-medium mt-1 text-emerald-400" : "text-sm font-medium mt-1 text-red-400";
 
-                    // On passe les données ML au graphique
                     updateChart(data.dates, data.prices, data.ml);
 
                     if (data.ml) {
@@ -171,7 +213,7 @@
                     dashboard.classList.add('hidden');
                 }
             } catch (error) {
-                errorMsg.textContent = "Erreur de connexion au serveur.";
+                errorMsg.textContent = "Server connection error.";
                 errorMsg.classList.remove('hidden');
             } finally {
                 chartLoading.classList.add('hidden');
@@ -185,11 +227,10 @@
                 chartInstance.destroy();
             }
 
-            // 1. Dataset de base : Le prix réel
             const datasets = [{
-                label: 'Prix Réel',
+                label: 'Real Price',
                 data: prices,
-                borderColor: '#3b82f6', // Bleu
+                borderColor: '#3b82f6', 
                 backgroundColor: 'rgba(59, 130, 246, 0.1)',
                 borderWidth: 2,
                 pointRadius: 0,
@@ -199,13 +240,11 @@
                 tension: 0.1
             }];
 
-            // 2. Ajouter les courbes ML si elles existent
             if (mlData) {
-                // A. Ligne de tendance globale (Tirets gris)
                 datasets.push({
-                    label: 'Tendance Globale',
+                    label: 'Global Trend',
                     data: mlData.trendline,
-                    borderColor: '#94a3b8', // Gris slate
+                    borderColor: '#94a3b8', 
                     borderWidth: 1.5,
                     borderDash: [5, 5],
                     pointRadius: 0,
@@ -213,15 +252,13 @@
                     tension: 0
                 });
 
-                // B. Suivi du Modèle T+1 (Pointillés oranges)
                 datasets.push({
-                    label: 'Modèle ML (T+1)',
+                    label: 'ML Model (T+1)',
                     data: mlData.ml_prices,
-                    borderColor: '#f59e0b', // Orange amber
+                    borderColor: '#f59e0b', 
                     borderWidth: 2,
                     borderDash: [2, 4],
                     pointRadius: function(context) {
-                        // On affiche un gros point uniquement sur la toute dernière valeur (la prédiction)
                         return context.dataIndex === mlData.ml_prices.length - 1 ? 6 : 0;
                     },
                     pointBackgroundColor: '#f59e0b',
@@ -244,7 +281,6 @@
                         mode: 'index',
                     },
                     plugins: {
-                        // On affiche la légende pour que l'utilisateur comprenne les courbes
                         legend: { 
                             display: true,
                             labels: { color: '#94a3b8', boxWidth: 12 }
@@ -258,7 +294,6 @@
                             padding: 10,
                             callbacks: {
                                 label: function(context) {
-                                    // Gérer proprement le "null" du prix réel le jour de la prédiction
                                     if (context.parsed.y === null) return null;
                                     return `${context.dataset.label}: $${context.parsed.y}`; 
                                 }
