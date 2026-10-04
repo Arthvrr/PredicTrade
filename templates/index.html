@@ -3,8 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PredicTrade</title>
-    <!-- Importation de la nouvelle police -->
+    <title>PredicTrade | Crossing Machine Learning with Stocks Exchange</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -12,101 +11,140 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         body { font-family: 'Plus Jakarta Sans', sans-serif; }
+        /* Scrollbar custom pour la liste déroulante */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: #0f172a; }
+        ::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
     </style>
 </head>
-<body class="bg-slate-950 text-slate-200 min-h-screen font-sans antialiased selection:bg-blue-500/30">
+<body class="bg-slate-950 text-slate-200 min-h-screen font-sans antialiased selection:bg-blue-500/30 overflow-x-hidden">
     
-    <main class="max-w-4xl mx-auto px-6 py-12">
-        <div class="text-center mb-12">
-            <h1 class="text-4xl font-extrabold tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-emerald-400 mb-6">
-                PredicTrade
-            </h1>
+    <main class="max-w-4xl mx-auto px-6 py-8">
+        
+        <!-- Search Hero Section (Centered initially, sliding up on search) -->
+        <div id="heroSection" class="transition-all duration-700 ease-in-out transform translate-y-[30vh]">
+            <div class="text-center mb-8">
+                <h1 class="text-5xl md:text-6xl font-extrabold tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-emerald-400 mb-2">
+                    PredicTrade
+                </h1>
+                <p class="text-slate-400 text-lg md:text-xl font-medium tracking-wide">
+                    Crossing Machine Learning with Stocks Exchange
+                </p>
+            </div>
             
-            <form id="searchForm" class="max-w-md mx-auto relative">
+            <form id="searchForm" class="max-w-xl mx-auto relative">
                 <div class="relative flex items-center">
                     <svg class="w-5 h-5 absolute left-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
-                    <input type="text" id="tickerInput" placeholder="Search a ticker (e.g. AAPL)" required
-                        class="w-full bg-slate-900 border border-slate-700 rounded-xl py-3 pl-12 pr-4 text-white placeholder-slate-500 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all uppercase">
-                    <button type="submit" class="absolute right-2 px-4 py-1.5 bg-blue-600 hover:bg-blue-500 text-white text-sm font-medium rounded-lg transition-colors">
+                    <input type="text" id="tickerInput" placeholder="Search a ticker (e.g. AAPL, NVDA)" required autocomplete="off"
+                        class="w-full bg-slate-900 border border-slate-700 rounded-xl py-4 pl-12 pr-28 text-lg text-white placeholder-slate-500 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/50 transition-all uppercase shadow-2xl">
+                    <button type="submit" class="absolute right-2 px-5 py-2 bg-blue-600 hover:bg-blue-500 text-white font-semibold rounded-lg transition-colors">
                         Search
                     </button>
                 </div>
-                <p id="errorMsg" class="text-red-400 text-sm mt-3 hidden"></p>
+                
+                <!-- Autocomplete Dropdown -->
+                <div id="suggestionsBox" class="absolute z-50 w-full bg-slate-800 border border-slate-700 rounded-xl mt-2 hidden max-h-60 overflow-y-auto shadow-2xl overflow-hidden">
+                    <!-- JS fills this -->
+                </div>
+
+                <p id="errorMsg" class="text-red-400 text-sm mt-3 text-center hidden"></p>
+
+                <!-- ML Feature Selection Panel -->
+                <div class="mt-5 p-4 bg-slate-900/50 border border-slate-800 rounded-xl flex flex-wrap items-center justify-center gap-4 md:gap-6 text-sm">
+                    <span class="text-slate-400 font-semibold flex items-center gap-1">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"></path></svg>
+                        Training Features:
+                    </span>
+                    <label class="flex items-center gap-2 cursor-pointer group">
+                        <input type="checkbox" checked disabled class="w-4 h-4 rounded bg-slate-800 border-slate-700 text-blue-500 focus:ring-blue-500 focus:ring-offset-slate-900 cursor-not-allowed opacity-50"> 
+                        <span class="text-slate-300 opacity-50">Close Price</span>
+                    </label>
+                    <label class="flex items-center gap-2 cursor-pointer group">
+                        <input type="checkbox" id="featVolume" class="w-4 h-4 rounded bg-slate-800 border-slate-700 text-blue-500 focus:ring-blue-500 focus:ring-offset-slate-900 transition-colors"> 
+                        <span class="text-slate-300 group-hover:text-white transition-colors">Trading Volume</span>
+                    </label>
+                    <label class="flex items-center gap-2 cursor-pointer group">
+                        <input type="checkbox" id="featSma" class="w-4 h-4 rounded bg-slate-800 border-slate-700 text-blue-500 focus:ring-blue-500 focus:ring-offset-slate-900 transition-colors"> 
+                        <span class="text-slate-300 group-hover:text-white transition-colors">Moving Averages</span>
+                    </label>
+                </div>
             </form>
         </div>
 
-        <div id="dashboard" class="hidden flex flex-col gap-6">
+        <!-- Dashboard (Hidden initially) -->
+        <div id="dashboard" class="hidden flex flex-col gap-6 opacity-0 transition-opacity duration-1000">
             
-            <div class="flex flex-col md:flex-row md:items-end justify-between pb-4 border-b border-slate-800">
+            <div class="flex flex-col md:flex-row md:items-end justify-between pb-4 border-b border-slate-800 mt-6">
                 <div>
-                    <h2 id="stockName" class="text-2xl font-bold text-white">--</h2>
+                    <h2 id="stockName" class="text-3xl font-bold text-white">--</h2>
                     <p id="stockTicker" class="text-slate-400 text-sm font-mono mt-1">--</p>
                 </div>
                 <div class="mt-4 md:mt-0 text-right">
-                    <p id="stockPrice" class="text-3xl font-bold text-white">--</p>
-                    <p id="stockVar" class="text-sm font-medium mt-1">--</p>
+                    <p id="stockPrice" class="text-4xl font-bold text-white tracking-tight">--</p>
+                    <p id="stockVar" class="text-sm font-semibold mt-1">--</p>
                 </div>
             </div>
 
             <div class="flex flex-wrap gap-2" id="timeFilters">
-                <button data-period="1D" class="period-btn px-3 py-1 text-sm rounded-full bg-slate-800 text-slate-400 hover:text-white transition-colors">1D</button>
-                <button data-period="1W" class="period-btn px-3 py-1 text-sm rounded-full bg-slate-800 text-slate-400 hover:text-white transition-colors">1W</button>
-                <button data-period="1M" class="period-btn px-3 py-1 text-sm rounded-full bg-slate-800 text-slate-400 hover:text-white transition-colors">1M</button>
-                <button data-period="3M" class="period-btn px-3 py-1 text-sm rounded-full bg-slate-800 text-slate-400 hover:text-white transition-colors">3M</button>
-                <button data-period="6M" class="period-btn px-3 py-1 text-sm rounded-full bg-slate-800 text-slate-400 hover:text-white transition-colors">6M</button>
-                <button data-period="1Y" class="period-btn px-3 py-1 text-sm rounded-full bg-blue-600 text-white font-medium transition-colors active">1Y</button>
-                <button data-period="YTD" class="period-btn px-3 py-1 text-sm rounded-full bg-slate-800 text-slate-400 hover:text-white transition-colors">YTD</button>
-                <button data-period="5Y" class="period-btn px-3 py-1 text-sm rounded-full bg-slate-800 text-slate-400 hover:text-white transition-colors">5Y</button>
-                <button data-period="ALL" class="period-btn px-3 py-1 text-sm rounded-full bg-slate-800 text-slate-400 hover:text-white transition-colors">ALL</button>
+                <button data-period="1D" class="period-btn px-4 py-1.5 text-sm rounded-full bg-slate-800/50 border border-slate-700 text-slate-400 hover:text-white transition-all">1D</button>
+                <button data-period="1W" class="period-btn px-4 py-1.5 text-sm rounded-full bg-slate-800/50 border border-slate-700 text-slate-400 hover:text-white transition-all">1W</button>
+                <button data-period="1M" class="period-btn px-4 py-1.5 text-sm rounded-full bg-slate-800/50 border border-slate-700 text-slate-400 hover:text-white transition-all">1M</button>
+                <button data-period="3M" class="period-btn px-4 py-1.5 text-sm rounded-full bg-slate-800/50 border border-slate-700 text-slate-400 hover:text-white transition-all">3M</button>
+                <button data-period="6M" class="period-btn px-4 py-1.5 text-sm rounded-full bg-slate-800/50 border border-slate-700 text-slate-400 hover:text-white transition-all">6M</button>
+                <button data-period="1Y" class="period-btn px-4 py-1.5 text-sm rounded-full bg-blue-600 text-white font-semibold transition-all active border border-blue-500 shadow-[0_0_15px_rgba(37,99,235,0.3)]">1Y</button>
+                <button data-period="YTD" class="period-btn px-4 py-1.5 text-sm rounded-full bg-slate-800/50 border border-slate-700 text-slate-400 hover:text-white transition-all">YTD</button>
+                <button data-period="5Y" class="period-btn px-4 py-1.5 text-sm rounded-full bg-slate-800/50 border border-slate-700 text-slate-400 hover:text-white transition-all">5Y</button>
+                <button data-period="ALL" class="period-btn px-4 py-1.5 text-sm rounded-full bg-slate-800/50 border border-slate-700 text-slate-400 hover:text-white transition-all">ALL</button>
             </div>
 
-            <!-- Chart Container (Group added for hover effects) -->
-            <div id="chartContainer" class="group bg-slate-900 border border-slate-800 p-4 rounded-xl h-[400px] relative">
-                
-                <!-- Fullscreen Button -->
-                <button id="fullscreenBtn" class="absolute top-4 right-4 z-20 p-2 bg-slate-800/80 text-slate-300 hover:text-white rounded-lg opacity-0 group-hover:opacity-100 transition-opacity backdrop-blur-sm border border-slate-700">
+            <!-- Chart Container -->
+            <div id="chartContainer" class="group bg-slate-900 border border-slate-800 p-4 rounded-xl h-[450px] relative shadow-xl">
+                <button id="fullscreenBtn" class="absolute top-4 right-4 z-20 p-2 bg-slate-800 text-slate-300 hover:text-white rounded-lg opacity-0 group-hover:opacity-100 transition-opacity border border-slate-600 hover:border-slate-400 shadow-lg">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4"></path></svg>
                 </button>
 
-                <div id="chartLoading" class="hidden absolute inset-0 bg-slate-900/80 flex items-center justify-center rounded-xl z-10">
-                    <div class="w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+                <div id="chartLoading" class="hidden absolute inset-0 bg-slate-900/80 flex items-center justify-center rounded-xl z-10 backdrop-blur-sm">
+                    <div class="flex flex-col items-center gap-3">
+                        <div class="w-10 h-10 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+                        <p class="text-blue-400 font-semibold animate-pulse">Training Model...</p>
+                    </div>
                 </div>
                 <canvas id="priceChart"></canvas>
             </div>
 
-            <div id="mlCard" class="bg-gradient-to-r from-blue-900/40 to-slate-800 border border-blue-800/50 p-6 rounded-xl hidden">
+            <!-- ML Prediction Card -->
+            <div id="mlCard" class="bg-gradient-to-br from-blue-900/40 via-slate-900 to-slate-900 border border-blue-800/50 p-6 rounded-xl hidden shadow-2xl">
                 <div class="flex items-center gap-3 mb-2 relative">
                     <svg class="w-6 h-6 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
-                    <h3 class="text-lg font-semibold text-blue-100 flex items-center gap-2">
+                    <h3 class="text-xl font-semibold text-white flex items-center gap-2">
                         Machine Learning Prediction 
-                        <span class="text-sm text-slate-400 font-normal">(Linear Regression)</span>
+                        <span class="text-sm text-slate-400 font-normal border border-slate-700 bg-slate-800 px-2 py-0.5 rounded-md">Linear Regression</span>
                         
-                        <!-- Tooltip Icon -->
-                        <div class="group relative flex items-center ml-1 cursor-help">
+                        <div class="group/tooltip relative flex items-center ml-1 cursor-help">
                             <svg class="w-5 h-5 text-slate-500 hover:text-blue-400 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                            <!-- Tooltip Content -->
-                            <div class="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-64 p-3 bg-slate-800 text-xs text-slate-300 rounded-lg shadow-xl opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none border border-slate-700 z-30">
-                                This model analyzes the historical prices of the selected period to find a linear correlation. It predicts the closing price of the next trading day and calculates the probable range using the historical Root Mean Squared Error (RMSE).
+                            <div class="absolute bottom-full left-1/2 -translate-x-1/2 mb-3 w-72 p-4 bg-slate-800 text-sm text-slate-300 rounded-xl shadow-2xl opacity-0 group-hover/tooltip:opacity-100 transition-opacity pointer-events-none border border-slate-700 z-30 leading-relaxed">
+                                This model is dynamically trained on your selected features. It predicts the closing price of the next trading day and calculates the probable range using the historical Root Mean Squared Error (RMSE).
+                                <div class="absolute -bottom-2 left-1/2 -translate-x-1/2 w-4 h-4 bg-slate-800 border-b border-r border-slate-700 transform rotate-45"></div>
                             </div>
                         </div>
                     </h3>
                 </div>
-                <p class="text-slate-400 text-sm mb-4">The model estimates the value of the next data point based on statistical correlation over the selected timeframe.</p>
+                <p class="text-slate-400 text-sm mb-6" id="activeFeaturesDisplay">Trained using: Close Price.</p>
                 
-                <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-                    <div class="bg-slate-900/50 p-4 rounded-lg border border-slate-700/50">
-                        <p class="text-xs text-slate-400 uppercase tracking-wider mb-1">Estimation</p>
-                        <p id="mlPred" class="text-2xl font-bold text-white">--</p>
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-6">
+                    <div class="bg-slate-950 p-5 rounded-xl border border-slate-800 shadow-inner">
+                        <p class="text-xs text-slate-400 uppercase tracking-wider mb-2 font-bold">Estimation</p>
+                        <p id="mlPred" class="text-3xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-white to-slate-400">--</p>
                     </div>
-                    <div class="bg-slate-900/50 p-4 rounded-lg border border-slate-700/50 col-span-2 md:col-span-3">
-                        <p class="text-xs text-slate-400 uppercase tracking-wider mb-1">Probable Range (± 1 Std Dev)</p>
+                    <div class="bg-slate-950 p-5 rounded-xl border border-slate-800 col-span-2 md:col-span-3 shadow-inner flex flex-col justify-center">
+                        <p class="text-xs text-slate-400 uppercase tracking-wider mb-3 font-bold">Probable Range (± 1 Std Dev)</p>
                         <div class="flex items-center gap-4 mt-1">
-                            <span id="mlMin" class="text-xl font-bold text-slate-300">--</span>
-                            <div class="flex-1 h-2 bg-slate-700 rounded-full relative">
-                                <div class="absolute inset-y-0 left-1/4 right-1/4 bg-blue-500/50 rounded-full"></div>
-                                <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-3 h-3 bg-blue-400 rounded-full shadow-[0_0_10px_rgba(96,165,250,0.8)]"></div>
+                            <span id="mlMin" class="text-lg font-bold text-slate-400">--</span>
+                            <div class="flex-1 h-2.5 bg-slate-800 rounded-full relative overflow-hidden">
+                                <div class="absolute inset-y-0 left-1/4 right-1/4 bg-blue-500/30"></div>
+                                <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-4 h-4 bg-blue-500 rounded-full shadow-[0_0_15px_rgba(59,130,246,1)] border-2 border-slate-900"></div>
                             </div>
-                            <span id="mlMax" class="text-xl font-bold text-slate-300">--</span>
+                            <span id="mlMax" class="text-lg font-bold text-slate-400">--</span>
                         </div>
                     </div>
                 </div>
@@ -120,24 +158,71 @@
         let currentTicker = "";
         let currentPeriod = "1Y";
 
+        // Autocomplete Logic
+        const tickerInput = document.getElementById('tickerInput');
+        const suggestionsBox = document.getElementById('suggestionsBox');
+        let debounceTimeout = null;
+
+        tickerInput.addEventListener('input', (e) => {
+            clearTimeout(debounceTimeout);
+            const val = e.target.value.trim();
+            
+            if(val.length < 1) { 
+                suggestionsBox.classList.add('hidden'); 
+                return; 
+            }
+            
+            debounceTimeout = setTimeout(async () => {
+                try {
+                    const res = await fetch(`/api/search?q=${val}`);
+                    const data = await res.json();
+                    
+                    if(data.length > 0) {
+                        suggestionsBox.innerHTML = data.map(item => `
+                            <div class="px-5 py-3 hover:bg-slate-700 cursor-pointer flex justify-between items-center border-b border-slate-700/50 last:border-0 transition-colors" onclick="selectTicker('${item.symbol}')">
+                                <span class="font-bold text-white text-lg">${item.symbol}</span>
+                                <span class="text-xs text-slate-400 truncate ml-4 text-right">${item.shortname}</span>
+                            </div>
+                        `).join('');
+                        suggestionsBox.classList.remove('hidden');
+                    } else {
+                        suggestionsBox.classList.add('hidden');
+                    }
+                } catch (err) {
+                    console.error("Autocomplete error", err);
+                }
+            }, 250); // Attend 250ms avant d'interroger l'API (évite le spam)
+        });
+
+        // Clique en dehors pour fermer l'auto-complétion
+        document.addEventListener('click', (e) => {
+            if(!tickerInput.contains(e.target) && !suggestionsBox.contains(e.target)) {
+                suggestionsBox.classList.add('hidden');
+            }
+        });
+
+        window.selectTicker = function(symbol) {
+            tickerInput.value = symbol;
+            suggestionsBox.classList.add('hidden');
+            // Auto-submit
+            document.getElementById('searchForm').dispatchEvent(new Event('submit'));
+        }
+
         // Fullscreen Logic
         const chartContainer = document.getElementById('chartContainer');
         const fullscreenBtn = document.getElementById('fullscreenBtn');
 
         fullscreenBtn.addEventListener('click', () => {
             if (!document.fullscreenElement) {
-                chartContainer.requestFullscreen().catch(err => {
-                    console.error(`Error attempting to enable fullscreen mode: ${err.message}`);
-                });
+                chartContainer.requestFullscreen();
             } else {
                 document.exitFullscreen();
             }
         });
 
-        // Listen for fullscreen changes to adjust padding/background
         document.addEventListener('fullscreenchange', () => {
             if (document.fullscreenElement) {
-                chartContainer.classList.add('p-8'); // Add more padding in fullscreen
+                chartContainer.classList.add('p-8');
             } else {
                 chartContainer.classList.remove('p-8');
             }
@@ -145,7 +230,14 @@
 
         document.getElementById('searchForm').addEventListener('submit', (e) => {
             e.preventDefault();
-            currentTicker = document.getElementById('tickerInput').value;
+            currentTicker = document.getElementById('tickerInput').value.toUpperCase();
+            suggestionsBox.classList.add('hidden');
+            
+            // Animation : On monte le Hero Section vers le haut
+            const heroSection = document.getElementById('heroSection');
+            heroSection.classList.remove('translate-y-[30vh]');
+            heroSection.classList.add('translate-y-0');
+            
             fetchData(currentTicker, currentPeriod);
         });
 
@@ -158,12 +250,16 @@
             });
         });
 
+        // Si on change les features, on relance l'entraînement
+        document.getElementById('featVolume').addEventListener('change', () => currentTicker && fetchData(currentTicker, currentPeriod));
+        document.getElementById('featSma').addEventListener('change', () => currentTicker && fetchData(currentTicker, currentPeriod));
+
         function updateActiveButton(activePeriod) {
             document.querySelectorAll('.period-btn').forEach(btn => {
                 if (btn.getAttribute('data-period') === activePeriod) {
-                    btn.className = "period-btn px-3 py-1 text-sm rounded-full bg-blue-600 text-white font-medium transition-colors active";
+                    btn.className = "period-btn px-4 py-1.5 text-sm rounded-full bg-blue-600 text-white font-semibold transition-all active border border-blue-500 shadow-[0_0_15px_rgba(37,99,235,0.3)]";
                 } else {
-                    btn.className = "period-btn px-3 py-1 text-sm rounded-full bg-slate-800 text-slate-400 hover:text-white transition-colors";
+                    btn.className = "period-btn px-4 py-1.5 text-sm rounded-full bg-slate-800/50 border border-slate-700 text-slate-400 hover:text-white transition-all";
                 }
             });
         }
@@ -176,14 +272,29 @@
             
             errorMsg.classList.add('hidden');
             dashboard.classList.remove('hidden');
+            
+            setTimeout(() => dashboard.classList.remove('opacity-0'), 100);
+            
             chartLoading.classList.remove('hidden');
             mlCard.classList.add('hidden');
+
+            const features = ['close'];
+            const activeFeaturesNames = ['Close Price'];
+            
+            if(document.getElementById('featVolume').checked) {
+                features.push('volume');
+                activeFeaturesNames.push('Volume');
+            }
+            if(document.getElementById('featSma').checked) {
+                features.push('sma');
+                activeFeaturesNames.push('Moving Averages (5 & 10)');
+            }
 
             try {
                 const response = await fetch('/api/stock', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ ticker: ticker, period: period })
+                    body: JSON.stringify({ ticker: ticker, period: period, features: features })
                 });
                 
                 const data = await response.json();
@@ -196,11 +307,13 @@
                     const varEl = document.getElementById('stockVar');
                     const sign = data.variation >= 0 ? '+' : '';
                     varEl.textContent = `${sign}${data.variation}% over ${data.period}`;
-                    varEl.className = data.variation >= 0 ? "text-sm font-medium mt-1 text-emerald-400" : "text-sm font-medium mt-1 text-red-400";
+                    varEl.className = data.variation >= 0 ? "text-sm font-semibold mt-1 text-emerald-400" : "text-sm font-semibold mt-1 text-red-400";
 
-                    updateChart(data.dates, data.prices, data.ml);
+                    // On envoie les nouvelles données au graphique
+                    updateChart(data.dates, data.prices, data.ml, data.volume_data, data.sma5_data, data.sma10_data);
 
                     if (data.ml) {
+                        document.getElementById('activeFeaturesDisplay').textContent = `Trained using: ${activeFeaturesNames.join(', ')}.`;
                         document.getElementById('mlPred').textContent = `$${data.ml.prediction.toFixed(2)}`;
                         document.getElementById('mlMin').textContent = `$${data.ml.range_min.toFixed(2)}`;
                         document.getElementById('mlMax').textContent = `$${data.ml.range_max.toFixed(2)}`;
@@ -210,7 +323,6 @@
                 } else {
                     errorMsg.textContent = data.error;
                     errorMsg.classList.remove('hidden');
-                    dashboard.classList.add('hidden');
                 }
             } catch (error) {
                 errorMsg.textContent = "Server connection error.";
@@ -220,7 +332,7 @@
             }
         }
 
-        function updateChart(dates, prices, mlData) {
+        function updateChart(dates, prices, mlData, volumeData, sma5Data, sma10Data) {
             const ctx = document.getElementById('priceChart').getContext('2d');
             
             if (chartInstance) {
@@ -237,9 +349,38 @@
                 pointHoverRadius: 4,
                 pointHitRadius: 10,
                 fill: true,
-                tension: 0.1
+                tension: 0.1,
+                yAxisID: 'y'
             }];
 
+            // Affichage des Moyennes Mobiles
+            if (sma5Data) {
+                datasets.push({
+                    label: 'SMA 5',
+                    data: sma5Data,
+                    borderColor: '#10b981', // Vert émeraude
+                    borderWidth: 1.5,
+                    pointRadius: 0,
+                    fill: false,
+                    tension: 0.1,
+                    yAxisID: 'y'
+                });
+            }
+
+            if (sma10Data) {
+                datasets.push({
+                    label: 'SMA 10',
+                    data: sma10Data,
+                    borderColor: '#8b5cf6', // Violet
+                    borderWidth: 1.5,
+                    pointRadius: 0,
+                    fill: false,
+                    tension: 0.1,
+                    yAxisID: 'y'
+                });
+            }
+
+            // Affichage du Modèle ML
             if (mlData) {
                 datasets.push({
                     label: 'Global Trend',
@@ -249,21 +390,37 @@
                     borderDash: [5, 5],
                     pointRadius: 0,
                     fill: false,
-                    tension: 0
+                    tension: 0,
+                    yAxisID: 'y'
                 });
 
                 datasets.push({
                     label: 'ML Model (T+1)',
                     data: mlData.ml_prices,
                     borderColor: '#f59e0b', 
-                    borderWidth: 2,
-                    borderDash: [2, 4],
+                    borderWidth: 2.5,
+                    borderDash: [3, 4],
                     pointRadius: function(context) {
-                        return context.dataIndex === mlData.ml_prices.length - 1 ? 6 : 0;
+                        return context.dataIndex === mlData.ml_prices.length - 1 ? 7 : 0;
                     },
                     pointBackgroundColor: '#f59e0b',
+                    pointBorderColor: '#fff',
+                    pointBorderWidth: 2,
                     fill: false,
-                    tension: 0.1
+                    tension: 0.1,
+                    yAxisID: 'y'
+                });
+            }
+
+            // Affichage des Volumes en barres (dessinées en arrière-plan)
+            if (volumeData) {
+                datasets.push({
+                    type: 'bar',
+                    label: 'Volume',
+                    data: volumeData,
+                    backgroundColor: 'rgba(148, 163, 184, 0.2)', // Gris semi-transparent
+                    yAxisID: 'yVolume',
+                    order: 99 // Pour que les barres soient derrière les lignes
                 });
             }
             
@@ -276,25 +433,28 @@
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
-                    interaction: {
-                        intersect: false,
-                        mode: 'index',
-                    },
+                    interaction: { intersect: false, mode: 'index' },
                     plugins: {
                         legend: { 
                             display: true,
-                            labels: { color: '#94a3b8', boxWidth: 12 }
+                            labels: { color: '#94a3b8', boxWidth: 12, padding: 20, font: { family: "'Plus Jakarta Sans', sans-serif", weight: '600' } }
                         },
                         tooltip: {
-                            backgroundColor: 'rgba(15, 23, 42, 0.9)',
+                            backgroundColor: 'rgba(15, 23, 42, 0.95)',
                             titleColor: '#94a3b8',
                             bodyColor: '#f8fafc',
                             borderColor: '#334155',
                             borderWidth: 1,
-                            padding: 10,
+                            padding: 12,
+                            titleFont: { family: "'Plus Jakarta Sans', sans-serif" },
+                            bodyFont: { family: "'Plus Jakarta Sans', sans-serif", size: 14, weight: '500' },
                             callbacks: {
                                 label: function(context) {
                                     if (context.parsed.y === null) return null;
+                                    // Formater le volume proprement s'il est affiché
+                                    if (context.dataset.label === 'Volume') {
+                                        return `Volume: ${context.parsed.y.toLocaleString()}`;
+                                    }
                                     return `${context.dataset.label}: $${context.parsed.y}`; 
                                 }
                             }
@@ -303,14 +463,24 @@
                     scales: {
                         x: {
                             grid: { display: false },
-                            ticks: { maxTicksLimit: 8, color: '#64748b' }
+                            ticks: { maxTicksLimit: 8, color: '#64748b', font: { family: "'Plus Jakarta Sans', sans-serif" } }
                         },
                         y: {
                             grid: { color: '#1e293b' },
                             ticks: {
                                 color: '#64748b',
+                                font: { family: "'Plus Jakarta Sans', sans-serif" },
                                 callback: function(value) { return '$' + value; }
                             }
+                        },
+                        // Nouvel axe dédié aux Volumes
+                        yVolume: {
+                            type: 'linear',
+                            position: 'right',
+                            display: false, // On cache les chiffres de l'axe pour ne pas surcharger
+                            min: 0,
+                            // Astuce : on multiplie le max par 4 pour que les barres de volume ne dépassent pas le quart inférieur du graphique
+                            suggestedMax: volumeData ? Math.max(...volumeData.filter(v => v !== null)) * 4 : 100
                         }
                     }
                 }

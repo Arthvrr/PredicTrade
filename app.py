@@ -3,6 +3,7 @@ import yfinance as yf
 from sklearn.linear_model import LinearRegression
 import numpy as np
 import pandas as pd
+import requests
 
 app = Flask(__name__)
 
@@ -10,11 +11,36 @@ app = Flask(__name__)
 def home():
     return render_template('index.html')
 
+# Endpoint pour l'auto-complétion de la barre de recherche
+@app.route('/api/search', methods=['GET'])
+def search_ticker():
+    query = request.args.get('q', '').strip()
+    if not query:
+        return jsonify([])
+        
+    url = f"https://query2.finance.yahoo.com/v1/finance/search?q={query}&quotesCount=5&newsCount=0"
+    headers = {'User-Agent': 'Mozilla/5.0'}
+    
+    try:
+        res = requests.get(url, headers=headers)
+        data = res.json()
+        quotes = data.get('quotes', [])
+        
+        results = [
+            {"symbol": q.get('symbol'), "shortname": q.get('shortname', q.get('longname', 'Unknown'))}
+            for q in quotes if q.get('quoteType') in ['EQUITY', 'ETF']
+        ]
+        return jsonify(results)
+    except Exception as e:
+        print(f"Search API Error: {e}")
+        return jsonify([])
+
 @app.route('/api/stock', methods=['POST'])
 def get_stock_data():
     data = request.json
     ticker = data.get('ticker', '').strip().upper()
     period = data.get('period', '1Y')
+    features = data.get('features', ['close'])
     
     if not ticker:
         return jsonify({"error": "Please enter a stock ticker."}), 400
@@ -53,39 +79,63 @@ def get_stock_data():
         last_price = prices[-1]
         variation_pct = round(((last_price - first_price) / first_price) * 100, 2) if first_price > 0 else 0
         
-        # ==========================================
-        # MACHINE LEARNING : LINEAR REGRESSION
-        # ==========================================
+        # Ligne de tendance globale
         time_X = np.arange(len(prices)).reshape(-1, 1)
         trend_model = LinearRegression()
         trend_model.fit(time_X, prices)
         trend_prices = trend_model.predict(time_X)
-        
         next_time_X = np.array([[len(prices)]])
         trend_pred = trend_model.predict(next_time_X)[0]
 
         df = pd.DataFrame({'Close': prices})
+        feature_cols = ['Close']
+        
+        # Extraction des indicateurs pour l'affichage visuel
+        frontend_volume = None
+        frontend_sma5 = None
+        frontend_sma10 = None
+        
+        if 'volume' in features and 'Volume' in hist.columns:
+            df['Volume'] = hist['Volume'].values
+            feature_cols.append('Volume')
+            frontend_volume = hist['Volume'].tolist()
+            
+        if 'sma' in features:
+            df['SMA_5'] = df['Close'].rolling(window=5).mean()
+            df['SMA_10'] = df['Close'].rolling(window=10).mean()
+            feature_cols.extend(['SMA_5', 'SMA_10'])
+            
+            # Convertir les NaN (générés par le rolling) en None pour que le JSON fonctionne
+            frontend_sma5 = [round(x, 2) if pd.notna(x) else None for x in df['SMA_5']]
+            frontend_sma10 = [round(x, 2) if pd.notna(x) else None for x in df['SMA_10']]
+
         df['Target'] = df['Close'].shift(-1)
         train_df = df.dropna()
         
-        if len(train_df) > 5:
-            X = train_df[['Close']].values
+        if len(train_df) > 10:
+            X = train_df[feature_cols].values
             y = train_df['Target'].values
             
             model = LinearRegression()
             model.fit(X, y)
             
-            next_X = np.array([[last_price]])
+            last_known_features = df[feature_cols].iloc[-1].values
+            next_X = np.array([last_known_features])
             pred = model.predict(next_X)[0]
             
             predictions_history = model.predict(X)
             rmse = np.sqrt(np.mean((y - predictions_history)**2))
             
-            ml_prices = [None] + np.round(predictions_history, 2).tolist()
+            offset = len(prices) - len(predictions_history)
+            ml_prices = [None] * offset + np.round(predictions_history, 2).tolist()
             
             dates.append("Tomorrow (Prediction)")
             prices.append(None) 
             ml_prices.append(round(pred, 2))
+            
+            if frontend_volume: frontend_volume.append(None)
+            if frontend_sma5: frontend_sma5.append(None)
+            if frontend_sma10: frontend_sma10.append(None)
             
             trend_prices_list = np.round(trend_prices, 2).tolist()
             trend_prices_list.append(round(trend_pred, 2))
@@ -108,6 +158,9 @@ def get_stock_data():
             "period": period,
             "dates": dates,
             "prices": prices,
+            "volume_data": frontend_volume,
+            "sma5_data": frontend_sma5,
+            "sma10_data": frontend_sma10,
             "ml": ml_data
         })
         
