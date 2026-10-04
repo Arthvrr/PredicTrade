@@ -1,6 +1,7 @@
 from flask import Flask, render_template, request, jsonify
 import yfinance as yf
 from sklearn.linear_model import LinearRegression
+from sklearn.ensemble import RandomForestRegressor
 import numpy as np
 import pandas as pd
 import requests
@@ -67,8 +68,6 @@ def get_stock_data():
             
         info = stock.info
         company_name = info.get('shortName', ticker)
-        
-        # Extraction du domaine web pour le logo Clearbit
         website = info.get('website', '')
         domain = website.replace('https://', '').replace('http://', '').replace('www.', '').split('/')[0] if website else None
         
@@ -78,21 +77,23 @@ def get_stock_data():
             dates = hist.index.strftime('%Y-%m-%d').tolist()
             
         prices = hist['Close'].round(2).tolist()
-        
         first_price = prices[0]
         last_price = prices[-1]
         variation_pct = round(((last_price - first_price) / first_price) * 100, 2) if first_price > 0 else 0
         
+        # 1. Tendance globale (Commune aux graphiques)
         time_X = np.arange(len(prices)).reshape(-1, 1)
         trend_model = LinearRegression()
         trend_model.fit(time_X, prices)
         trend_prices = trend_model.predict(time_X)
         next_time_X = np.array([[len(prices)]])
         trend_pred = trend_model.predict(next_time_X)[0]
+        trend_prices_list = np.round(trend_prices, 2).tolist()
+        trend_prices_list.append(round(trend_pred, 2))
 
+        # 2. Préparation des Features ML
         df = pd.DataFrame({'Close': prices})
         feature_cols = ['Close']
-        
         frontend_volume = None
         frontend_sma5 = None
         frontend_sma10 = None
@@ -106,51 +107,63 @@ def get_stock_data():
             df['SMA_5'] = df['Close'].rolling(window=5).mean()
             df['SMA_10'] = df['Close'].rolling(window=10).mean()
             feature_cols.extend(['SMA_5', 'SMA_10'])
-            
             frontend_sma5 = [round(x, 2) if pd.notna(x) else None for x in df['SMA_5']]
             frontend_sma10 = [round(x, 2) if pd.notna(x) else None for x in df['SMA_10']]
 
         df['Target'] = df['Close'].shift(-1)
         train_df = df.dropna()
         
+        ml_lr = None
+        ml_rf = None
+
         if len(train_df) > 10:
             X = train_df[feature_cols].values
             y = train_df['Target'].values
-            
-            model = LinearRegression()
-            model.fit(X, y)
-            
             last_known_features = df[feature_cols].iloc[-1].values
             next_X = np.array([last_known_features])
-            pred = model.predict(next_X)[0]
             
-            predictions_history = model.predict(X)
-            rmse = np.sqrt(np.mean((y - predictions_history)**2))
+            # --- MODÈLE 1 : LINEAR REGRESSION ---
+            lr_model = LinearRegression()
+            lr_model.fit(X, y)
+            lr_pred = lr_model.predict(next_X)[0]
+            lr_hist = lr_model.predict(X)
+            lr_rmse = np.sqrt(np.mean((y - lr_hist)**2))
             
-            offset = len(prices) - len(predictions_history)
-            ml_prices = [None] * offset + np.round(predictions_history, 2).tolist()
+            offset = len(prices) - len(lr_hist)
+            lr_prices = [None] * offset + np.round(lr_hist, 2).tolist()
+            lr_prices.append(round(lr_pred, 2))
             
+            ml_lr = {
+                "prediction": round(lr_pred, 2),
+                "range_min": round(lr_pred - lr_rmse, 2),
+                "range_max": round(lr_pred + lr_rmse, 2),
+                "ml_prices": lr_prices
+            }
+
+            # --- MODÈLE 2 : RANDOM FOREST ---
+            rf_model = RandomForestRegressor(n_estimators=100, random_state=42)
+            rf_model.fit(X, y)
+            rf_pred = rf_model.predict(next_X)[0]
+            rf_hist = rf_model.predict(X)
+            rf_rmse = np.sqrt(np.mean((y - rf_hist)**2))
+            
+            rf_prices = [None] * offset + np.round(rf_hist, 2).tolist()
+            rf_prices.append(round(rf_pred, 2))
+            
+            ml_rf = {
+                "prediction": round(rf_pred, 2),
+                "range_min": round(rf_pred - rf_rmse, 2),
+                "range_max": round(rf_pred + rf_rmse, 2),
+                "ml_prices": rf_prices
+            }
+            
+            # Ajout des données de demain pour le frontend
             dates.append("Tomorrow (Prediction)")
-            prices.append(None) 
-            ml_prices.append(round(pred, 2))
-            
+            prices.append(None)
             if frontend_volume: frontend_volume.append(None)
             if frontend_sma5: frontend_sma5.append(None)
             if frontend_sma10: frontend_sma10.append(None)
-            
-            trend_prices_list = np.round(trend_prices, 2).tolist()
-            trend_prices_list.append(round(trend_pred, 2))
-            
-            ml_data = {
-                "prediction": round(pred, 2),
-                "range_min": round(pred - rmse, 2),
-                "range_max": round(pred + rmse, 2),
-                "ml_prices": ml_prices,
-                "trendline": trend_prices_list
-            }
-        else:
-            ml_data = None
-            
+
         return jsonify({
             "ticker": ticker,
             "name": company_name,
@@ -163,7 +176,9 @@ def get_stock_data():
             "volume_data": frontend_volume,
             "sma5_data": frontend_sma5,
             "sma10_data": frontend_sma10,
-            "ml": ml_data
+            "trendline": trend_prices_list,
+            "ml_lr": ml_lr,
+            "ml_rf": ml_rf
         })
         
     except Exception as e:
